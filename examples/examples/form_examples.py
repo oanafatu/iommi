@@ -7,6 +7,7 @@ from django.urls import path
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext
+from tri_declarative import LAST
 from tri_struct import Struct
 
 from examples import (
@@ -14,6 +15,7 @@ from examples import (
     example_links,
 )
 from examples.models import (
+    Album,
     Artist,
     Track,
 )
@@ -195,14 +197,21 @@ def formset(request):
         name = Field.text()
         amount = Field.integer()
 
-        class Meta:
-            iommi_style = 'bootstrap_fieldset'
-
     class FruitBasketForm(Form):
         name = Field.text()
         fruits = Field.formset(FruitForm)
 
     return FruitBasketForm()
+
+
+def auto_formset(request):
+    return Form.edit(
+        auto__instance=Album.objects.get(name='13'),
+        fields__tracks=dict(
+            call_target__attribute='formset_reverse_foreign_key',
+            after=LAST,
+        ),
+    )
 
 
 urlpatterns = [
@@ -216,4 +225,5 @@ urlpatterns = [
     path('example_7/', form_example_7),
     path('all_fields/', all_field_sorts),
     path('formset/', formset),
+    path('auto_formset/', auto_formset),
 ]

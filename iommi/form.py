@@ -84,6 +84,7 @@ from iommi.evaluate import (
 from iommi.from_model import (
     AutoConfig,
     create_members_from_model,
+    get_field,
     get_search_fields,
     member_from_model,
     NoRegisteredSearchFieldException,
@@ -1206,6 +1207,22 @@ class Field(Part):
         call_target = FormsetField
         return call_target(nested_form=nested_form, **kwargs)
 
+    @classmethod
+    @class_shortcut(
+        call_target__attribute='formset',
+        nested_form=EMPTY,
+    )
+    def formset_reverse_foreign_key(cls, nested_form, model, model_field_name, call_target=None, **kwargs):
+        model_field = get_field(model, model_field_name)
+        nested_form = setdefaults_path(
+            Namespace(),
+            nested_form,
+            auto__model=model_field.field.model,
+            call_target=Form,
+            **{f'fields__{model_field.remote_field.name}__include': False},  # Remove the back reference
+        )
+        return call_target(nested_form=nested_form, model=model, model_field_name=model_field_name, **kwargs)
+
 
 class FormsetField(Field):
     nested_form = Refinable()
@@ -1218,11 +1235,12 @@ class FormsetField(Field):
     )
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        forms = {f'nested_form_{i}': self.nested_form() for i in range(10)}
-        collect_members(self, name='nested_forms', items_dict=forms, cls=Form)  # TODO: the type here.. seems wrong
 
     def on_bind(self) -> None:
         super().on_bind()
+        self.rows = getattr(self.form.instance, self.attr).all()
+        forms = {f'nested_form_{i}': self.nested_form(auto__instance=row) for i, row in enumerate(self.rows)}
+        collect_members(self, name='nested_forms', items_dict=forms, cls=Form)  # TODO: the type here.. seems wrong
         bind_members(self, name='nested_forms')
 
 

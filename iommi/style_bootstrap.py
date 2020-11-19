@@ -56,6 +56,11 @@ bootstrap_base = Style(
                     'form-control': False,
                 },
             ),
+            formset=dict(
+                nested_form__attrs__class={'form-row': True},
+                nested_form__tag='div',
+                nested_form__iommi_style='bootstrap_fieldset',
+            ),
         ),
         attrs__class={
             'form-group': True,
@@ -69,10 +74,6 @@ bootstrap_base = Style(
             'form-text': True,
             'text-muted': True,
         },
-    ),
-    FormsetField=dict(
-        nested_form__attrs__class={'form-row': True},
-        nested_form__tag='div',
     ),
     Action=dict(
         shortcuts=dict(
