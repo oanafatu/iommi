@@ -223,6 +223,7 @@ def validate_styles(*, additional_classes: List[Type] = None, default_classes=No
         from iommi.admin import Admin
         from iommi.fragment import Container
         from iommi.fragment import Header
+        from iommi.form import FormsetField
         default_classes = [
             Action,
             Actions,
@@ -241,6 +242,7 @@ def validate_styles(*, additional_classes: List[Type] = None, default_classes=No
             Admin,
             Container,
             Header,
+            FormsetField,
         ]
     if additional_classes is None:
         additional_classes = []

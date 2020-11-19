@@ -34,6 +34,7 @@ base = Style(
         ),
     ),
     Form=dict(
+        tag='form',
         template='iommi/form/form.html',
         actions_template='iommi/form/actions.html',
     ),

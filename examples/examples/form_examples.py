@@ -190,6 +190,21 @@ class IndexPage(ExamplesPage):
         parts = example_links(examples)
 
 
+def formset(request):
+    class FruitForm(Form):
+        name = Field.text()
+        amount = Field.integer()
+
+        class Meta:
+            iommi_style = 'bootstrap_fieldset'
+
+    class FruitBasketForm(Form):
+        name = Field.text()
+        fruits = Field.formset(FruitForm)
+
+    return FruitBasketForm()
+
+
 urlpatterns = [
     path('', IndexPage().as_view()),
     path('example_1/', form_example_1),
@@ -200,4 +215,5 @@ urlpatterns = [
     path('example_6/', form_example_6),
     path('example_7/', form_example_7),
     path('all_fields/', all_field_sorts),
+    path('formset/', formset),
 ]

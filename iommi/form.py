@@ -98,6 +98,7 @@ from iommi.page import (
 from iommi.fragment import (
     Fragment,
     Header,
+    Tag,
 )
 from iommi.part import (
     Part,
@@ -612,7 +613,7 @@ class Field(Part):
 
     @property
     def form(self):
-        return self.iommi_parent().iommi_parent()
+        return self._parent._parent
 
     # noinspection PyUnusedLocal
     @staticmethod
@@ -1197,6 +1198,33 @@ class Field(Part):
         )
         return call_target(model_field=model_field, **kwargs)
 
+    @classmethod
+    @class_shortcut(
+        input__template=Template("""{% for f in field.nested_forms.values %}{{ f }}{% endfor %}"""),
+    )
+    def formset(cls, nested_form, call_target=None, **kwargs):
+        call_target = FormsetField
+        return call_target(nested_form=nested_form, **kwargs)
+
+
+class FormsetField(Field):
+    nested_form = Refinable()
+
+    @dispatch(
+        nested_form__actions__submit__include=False,
+        nested_form__attrs__action=None,
+        nested_form__attrs__enctype=None,
+        nested_form__attrs__method=None,
+    )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        forms = {f'nested_form_{i}': self.nested_form() for i in range(10)}
+        collect_members(self, name='nested_forms', items_dict=forms, cls=Form)  # TODO: the type here.. seems wrong
+
+    def on_bind(self) -> None:
+        super().on_bind()
+        bind_members(self, name='nested_forms')
+
 
 def create_or_edit_object_redirect(is_create, redirect_to, request, redirect, form):
     if redirect_to is None:
@@ -1230,7 +1258,7 @@ class FormAutoConfig(AutoConfig):
 
 @declarative(Field, '_fields_dict')
 @with_meta
-class Form(Part):
+class Form(Part, Tag):
     """
     Describe a Form. Example:
 
@@ -1257,6 +1285,7 @@ class Form(Part):
 """
     actions: Namespace = Refinable()
     actions_template: Union[str, Template] = Refinable()
+    tag: str = EvaluatedRefinable()
     attrs: Attrs = Refinable()  # attrs is evaluated, but in a special way so gets no EvaluatedRefinable type
     editable: bool = Refinable()
     h_tag: Union[Fragment, str] = Refinable()  # h_tag is evaluated, but in a special way so gets no EvaluatedRefinable type

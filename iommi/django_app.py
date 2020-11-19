@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 
 from iommi.from_model import register_search_fields
-from iommi.style import Style
 
 
 class IommiConfig(AppConfig):
@@ -22,6 +21,7 @@ class IommiConfig(AppConfig):
         from iommi.style_bootstrap import (
             bootstrap,
             bootstrap_horizontal,
+            bootstrap_fieldset,
         )
         from iommi.style_semantic_ui import semantic_ui
         from iommi.style_foundation import foundation, foundation_horizontal
@@ -34,6 +34,7 @@ class IommiConfig(AppConfig):
         register_style('bulma_horizontal', bulma_horizontal)
         register_style('bootstrap', bootstrap)
         register_style('bootstrap_horizontal', bootstrap_horizontal)
+        register_style('bootstrap_fieldset', bootstrap_fieldset)
         register_style('semantic_ui', semantic_ui)
         register_style('water', water)
         register_style('foundation', foundation)
