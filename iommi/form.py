@@ -108,6 +108,7 @@ from iommi.part import (
 from iommi.traversable import (
     EvaluatedRefinable,
     evaluated_refinable,
+    set_declared_member,
 )
 from iommi.reinvokable import reinvokable
 
@@ -608,8 +609,11 @@ class Field(Part):
             '_name': 'non_editable_input',
         })()
         self.input = self.input(_name='input')
+        set_declared_member(self, 'input', self.input)
         self.label = self.label(_name='label')
+        set_declared_member(self, 'label', self.label)
         self.help = self.help(_name='help')
+        set_declared_member(self, 'help', self.help)
         self._errors: Set[str] = set()
 
     @property
@@ -1201,47 +1205,74 @@ class Field(Part):
 
     @classmethod
     @class_shortcut(
-        input__template=Template("""{% for f in field.nested_forms.values %}{{ f }}{% endfor %}"""),
+        nested_table__title=None,
     )
-    def formset(cls, nested_form, call_target=None, **kwargs):
+    def formset(cls, call_target=None, **kwargs):
         call_target = FormsetField
-        return call_target(nested_form=nested_form, **kwargs)
+        return call_target(**kwargs)
 
     @classmethod
     @class_shortcut(
         call_target__attribute='formset',
-        nested_form=EMPTY,
+        nested_table=EMPTY,
     )
-    def formset_reverse_foreign_key(cls, nested_form, model, model_field_name, call_target=None, **kwargs):
+    def formset_reverse_foreign_key(cls, nested_table, model, model_field_name, call_target=None, **kwargs):
         model_field = get_field(model, model_field_name)
-        nested_form = setdefaults_path(
+        nested_table = setdefaults_path(
             Namespace(),
-            nested_form,
+            nested_table,
             auto__model=model_field.field.model,
-            call_target=Form,
-            **{f'fields__{model_field.remote_field.name}__include': False},  # Remove the back reference
+            rows=lambda form, table, **_: getattr(form.instance, model_field_name).all(),
+            **{f'columns__{model_field.remote_field.name}__include': False},  # Remove the back reference
         )
-        return call_target(nested_form=nested_form, model=model, model_field_name=model_field_name, **kwargs)
+        return call_target(nested_table=nested_table, model=model, model_field_name=model_field_name, **kwargs)
 
 
 class FormsetField(Field):
-    nested_form = Refinable()
+    nested_table = Refinable()
 
     @dispatch(
-        nested_form__actions__submit__include=False,
-        nested_form__attrs__action=None,
-        nested_form__attrs__enctype=None,
-        nested_form__attrs__method=None,
+        nested_table__actions__submit__include=False,
+        nested_table__attrs__action=None,
+        nested_table__attrs__enctype=None,
+        nested_table__attrs__method=None,
+        input__template=Template('{{ field.nested_table }}'),
     )
     def __init__(self, **kwargs):
+        from iommi.table import Table, Column
+        from iommi.endpoint import path_join
+
+        class FieldColumn(Column):
+            class Meta:
+                cell__format = lambda column, row, value, **_: format_html('<input style="width: 100%" name="{}" value="{}">', path_join(column.iommi_path, str(row.pk) or 'dummy'), value)
+
+        class DummyRow:
+            def __getattr__(self, item):
+                return ''
+
+        # TODO: we should be able to pass member_class to Table() and not need a subclass here, but this currently doesn't work
+        class FormTable(Table):
+            class Meta:
+                member_class = FieldColumn
+
+                preprocess_rows = lambda rows, **_: list(rows) + [DummyRow()]
+
+        kwargs = setdefaults_path(
+            Namespace(),
+            kwargs,
+            nested_table__call_target=FormTable,
+        )
         super().__init__(**kwargs)
+
+        self.nested_table = self.nested_table(_name='nested_table')
+        set_declared_member(self, 'nested_table', self.nested_table)
 
     def on_bind(self) -> None:
         super().on_bind()
-        self.rows = getattr(self.form.instance, self.attr).all()
-        forms = {f'nested_form_{i}': self.nested_form(auto__instance=row) for i, row in enumerate(self.rows)}
-        collect_members(self, name='nested_forms', items_dict=forms, cls=Form)  # TODO: the type here.. seems wrong
-        bind_members(self, name='nested_forms')
+        self.nested_table = self.nested_table.bind(parent=self)
+
+    # TODO: parse, is_valid, write_to_instance
+    # TODO: empty row w/ js to duplicate it
 
 
 def create_or_edit_object_redirect(is_create, redirect_to, request, redirect, form):
@@ -1369,8 +1400,8 @@ class Form(Part, Tag):
         self.instance = instance
         self.mode = INITIALS_FROM_GET
 
-        collect_members(self, name='actions', items=actions, cls=self.get_meta().action_class)
-        collect_members(self, name='fields', items=fields, items_dict=_fields_dict, cls=self.get_meta().member_class)
+        collect_members(self, name='actions', items=actions, cls=self.action_class)
+        collect_members(self, name='fields', items=fields, items_dict=_fields_dict, cls=self.member_class)
 
     def on_bind(self) -> None:
         assert self.actions_template

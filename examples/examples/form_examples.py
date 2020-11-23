@@ -192,6 +192,7 @@ class IndexPage(ExamplesPage):
         parts = example_links(examples)
 
 
+@example(gettext("Formset"))
 def formset(request):
     class FruitForm(Form):
         name = Field.text()
@@ -204,6 +205,7 @@ def formset(request):
     return FruitBasketForm()
 
 
+@example(gettext("Auto formset"))
 def auto_formset(request):
     return Form.edit(
         auto__instance=Album.objects.get(name='13'),

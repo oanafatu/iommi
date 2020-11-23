@@ -610,7 +610,7 @@ class Query(Part):
             **kwargs
         )
 
-        collect_members(self, name='filters', items=filters, items_dict=_filters_dict, cls=self.get_meta().member_class)
+        collect_members(self, name='filters', items=filters, items_dict=_filters_dict, cls=self.member_class)
 
         field_class = self.get_meta().form_class.get_meta().member_class
 

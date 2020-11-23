@@ -57,9 +57,7 @@ bootstrap_base = Style(
                 },
             ),
             formset=dict(
-                nested_form__attrs__class={'form-row': True},
-                nested_form__tag='div',
-                nested_form__iommi_style='bootstrap_fieldset',
+                nested_table__iommi_style='bootstrap_fieldset',
             ),
         ),
         attrs__class={
