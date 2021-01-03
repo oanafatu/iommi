@@ -58,7 +58,9 @@ def view(request):
     return HttpResponse(request.GET['foo'] + 'bar')    
 """
 
-    assert json.loads(dangerous_execute_code(code=code, request=req('get', foo='foo'), view=view).content) == dict(page='foobar')
+    request = req('get', foo='foo')
+    new_view = dangerous_execute_code(code=code, request=request, view=view)
+    assert new_view(request).content.decode() == 'foobar'
 
 
 def test_edit(capsys):

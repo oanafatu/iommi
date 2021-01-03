@@ -80,6 +80,7 @@ def ensure_objects():
 
     if not Path(settings.STATIC_ROOT).joinpath('album_art').exists():
         try:
+            # noinspection PyUnresolvedReferences
             from scrape_data import scrape_data
             scrape_data()
         except ImportError as e:
@@ -215,7 +216,7 @@ class DummyRow:
     def __getattr__(self, attr):
         _, _, shortcut = attr.partition('column_of_type_')
         s = f'{shortcut} #{self.idx}'
-        if shortcut == 'link':
+        if shortcut == 'link' or attr == 'link':
             class Link:
                 def get_absolute_url(self):
                     return '#'
@@ -223,6 +224,8 @@ class DummyRow:
                 def __str__(self):
                     return 'title'
             return Link()
+        if shortcut == 'number':
+            return f'{self.idx}'
         return s
 
     @staticmethod

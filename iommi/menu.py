@@ -296,5 +296,10 @@ class DebugMenu(Menu):
         tag='li',
         include=lambda **_: 'iommi.live_edit.Middleware' in settings.MIDDLEWARE,
     )
+    edit_style = MenuItem(
+        url='?_iommi_live_edit=style_editor',
+        tag='li',
+        include=lambda **_: 'iommi.live_edit.Middleware' in settings.MIDDLEWARE,
+    )
     profile = MenuItem(url='?_iommi_prof', tag='li', include=lambda **_: 'iommi.profiling.Middleware' in settings.MIDDLEWARE)
     sql_trace = MenuItem(display_name='SQL trace', url='?_iommi_sql_trace', tag='li', include=lambda **_: 'iommi.sql_trace.Middleware' in settings.MIDDLEWARE)

@@ -1,6 +1,4 @@
-from iommi.style import (
-    Style,
-)
+from iommi.style import Style
 from iommi.style_font_awesome_4 import font_awesome_4
 from iommi.style_base import base
 from iommi.asset import Asset

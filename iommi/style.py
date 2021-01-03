@@ -95,8 +95,8 @@ class Style:
                     self.content_block = base.content_block
                     break
 
+        from iommi.debug import iommi_debug_on
         if assets:
-            from iommi.debug import iommi_debug_on
             if iommi_debug_on():
                 print("Warning: The preferred way to add top level assets config to a Style is via the root argument. "
                       "I.e. assets__* becomes root__assets__*")
@@ -104,6 +104,10 @@ class Style:
 
         self.root = {k: v for k, v in items(Namespace(*(base.root for base in bases), root)) if v is not None}
         self.config = Namespace(*[x.config for x in bases], recursive_namespace(kwargs))
+
+        if iommi_debug_on():
+            import inspect
+            self._instantiated_at_frame = inspect.currentframe().f_back
 
     def component(self, obj, is_root=False):
         """
@@ -132,8 +136,9 @@ class Style:
 _styles = {}
 
 
-def register_style(name, conf):
-    assert name not in _styles
+def register_style(name, conf, allow_overwrite=False):
+    if not allow_overwrite:
+        assert name not in _styles
     assert conf.name is None
     conf.name = name
     _styles[name] = conf
@@ -212,7 +217,7 @@ def validate_styles(*, additional_classes: List[Type] = None, default_classes=No
 
     The `default_classes` parameter can be used to say which classes are
     checked for valid data. By default this is all the `Part`-derived
-    classes in iommmi. This parameter is primarily used by tests.
+    classes in iommi. This parameter is primarily used by tests.
 
     The `styles` parameter can be used to specify which exact styles to
     validate. By default it will validate all registered styles. This
