@@ -146,7 +146,9 @@ class Fragment(Part, Tag):
         self._iommi_saved_params['text'] = text
         collect_members(self, name='children', items=children, cls=Fragment, unknown_types_fall_through=True)
 
-    def render_text_or_children(self, context):
+    def render_text_or_children(self, context=None):
+        if context is None:
+            context = self.get_context()
         request = self.get_request()
         return format_html(
             '{}' * len(self.children),
