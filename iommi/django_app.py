@@ -27,6 +27,7 @@ class IommiConfig(AppConfig):
         from iommi.style_django_admin import django_admin, django_admin_horizontal
         from iommi.style_water import water
         from iommi.style_bulma import bulma, bulma_query_form
+        from iommi.style_uikit import uikit
         register_style('base', base)
         register_style('test', test)
         register_style('bulma', bulma)
@@ -39,3 +40,4 @@ class IommiConfig(AppConfig):
         register_style('foundation_horizontal', foundation_horizontal)
         register_style('django_admin', django_admin)
         register_style('django_admin_horizontal', django_admin_horizontal)
+        register_style('uikit', uikit)
