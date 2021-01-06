@@ -434,7 +434,7 @@ def style_editor__select(**_):
 @csrf_exempt
 def style_editor__edit(request, **_):
     from iommi.style import get_style, register_style
-    name = request.GET['name']
+    name = request.GET.get('name', request.POST['name'])
     style = get_style(name)
     filename = style._instantiated_at_frame.f_back.f_code.co_filename
 

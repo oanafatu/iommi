@@ -74,7 +74,7 @@ def test_middleware(settings, client, caplog):
     assert '------ 4 times: -------' in caplog.text
     assert select_statement in caplog.text
     assert 'File "iommi/iommi/sql_trace__tests.py", line ' in caplog.text
-    assert 'GET /?_iommi_sql_trace -> 200  (0.000s) (sql time: 0.000s)' in caplog.text
+    assert 'GET /?_iommi_sql_trace -> 200  (0.000s) (sql time:' in caplog.text
     assert '... and 3 more unique statements' in caplog.text
 
 
