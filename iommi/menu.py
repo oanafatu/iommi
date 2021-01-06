@@ -101,6 +101,7 @@ class MenuItem(MenuBase):
     group: str = EvaluatedRefinable()
     a = Refinable()
     active_class = Refinable()
+    active_class_on_item = Refinable()
 
     @reinvokable
     @dispatch(
@@ -139,7 +140,7 @@ class MenuItem(MenuBase):
             attrs__href=self.url,
             _name='a',
         )
-        if self._active:
+        if self._active and not self.active_class_on_item:
             setdefaults_path(
                 a,
                 attrs__class={self.active_class: True},
@@ -148,14 +149,21 @@ class MenuItem(MenuBase):
         if self.url is None and a.tag == 'a':
             a.tag = None
 
-        fragment = Fragment(
+        fragment = Namespace(
+            call_target=Fragment,
             children__a=a,
             tag=self.tag,
             template=self.template,
             attrs=self.attrs,
             _name='fragment',
         )
-        fragment = fragment.bind(parent=self)
+        if self._active and self.active_class_on_item:
+            setdefaults_path(
+                fragment,
+                attrs__class={self.active_class: True},
+            )
+
+        fragment = fragment().bind(parent=self)
         # need to do this here because otherwise the sub menu will get get double bind
         for name, item in items(self.sub_menu):
             assert name not in fragment.children

@@ -148,3 +148,19 @@ def test_reverse_lazy(settings):
 
     # This shouldn't raise
     str(menu)
+
+
+def test_active_on_li():
+    class MyMenu(Menu):
+        qwe = MenuItem(
+            url=None,
+            sub_menu=dict(
+                bar=MenuItem(active_class_on_item=True),
+                foo=MenuItem(after=0, active_class_on_item=True),
+            )
+        )
+
+    menu = MyMenu().bind(request=req('GET'))
+    menu.set_active('/foo/')
+    assert menu.sub_menu.qwe.sub_menu.foo._active is True
+    assert '<li class="active">' in menu.__html__()
