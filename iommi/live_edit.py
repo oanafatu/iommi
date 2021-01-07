@@ -491,7 +491,7 @@ from iommi.asset import Asset
                     of your `AppConfig`.
                     '''),
                     message2=html.p("When you've done that, you can proceed to "),
-                    edit=html.a('edit it', attrs__href=f'../{new}/edit/'),
+                    edit=html.a('edit it', attrs__href=f'?_iommi_live_edit=style_editor__edit&name={new}'),
                 ),
             )
 
