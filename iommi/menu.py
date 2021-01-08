@@ -291,8 +291,8 @@ class DebugMenu(Menu):
     tree = MenuItem(url='?/debug_tree', tag='li')
     pick = MenuItem(url='#', attrs__onclick='window.iommi_start_pick()', tag='li')
     edit = MenuItem(
-        display_name=lambda request, **_: 'Edit' if request.GET.get('_iommi_live_edit') in (None, 'row') else 'Edit vertical',
-        url=lambda request, **_: '?_iommi_live_edit' if request.GET.get('_iommi_live_edit') in (None, 'row') else '?_iommi_live_edit=row',
+        display_name=lambda request, **_: 'Edit vertical' if request.GET.get('_iommi_live_edit') is not None and request.GET.get('_iommi_live_edit_flow') != 'row' else 'Edit',
+        url=lambda request, **_: '?_iommi_live_edit&_iommi_live_edit_flow=row' if request.GET.get('_iommi_live_edit') is not None and request.GET.get('_iommi_live_edit_flow') != 'row' else '?_iommi_live_edit',
         tag='li',
         include=lambda **_: 'iommi.live_edit.Middleware' in settings.MIDDLEWARE,
     )

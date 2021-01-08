@@ -149,7 +149,12 @@ def create_response_for_view(new_view, request, callback_args, callback_kwargs, 
 
 
 @csrf_exempt
-def live_edit_view(request, view, callback_args, callback_kwargs):
+def live_edit_view(request, view, callback_args=None, callback_kwargs=None):
+    if callback_args is None:
+        callback_args = []
+    if callback_kwargs is None:
+        callback_kwargs = {}
+
     view = get_wrapped_view(view)
     # Read the old code
     try:
@@ -461,6 +466,8 @@ def style_editor__edit(request, **_):
         create_response=create_response,
         write_new_code_to_disk=write_new_code_to_disk,
         flow_direction='row',
+        callback_args=[],
+        callback_kwargs={},
     )
 
 
