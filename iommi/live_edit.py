@@ -47,7 +47,7 @@ class Middleware:
 
     def process_view(self, request, callback, callback_args, callback_kwargs):
         if should_edit(request):
-            return live_edit_dispatch(request)(request=request, view=callback)
+            return live_edit_dispatch(request)(request=request, view=callback, callback_args=callback_args, callback_kwargs=callback_kwargs)
 
 
 def live_edit_dispatch(request):
@@ -141,15 +141,15 @@ def write_new_code_to_disk_for_view(ast_of_entire_file, ast_of_old_code, code, f
         f.write(new_code)
 
 
-def create_response_for_view(new_view, request, **_):
+def create_response_for_view(new_view, request, callback_args, callback_kwargs, **_):
     if isinstance(new_view, type) and issubclass(new_view, Part):
         return new_view().bind(request=request).render_to_response()
     else:
-        return new_view(request)
+        return new_view(request, *callback_args, **callback_kwargs)
 
 
 @csrf_exempt
-def live_edit_view(request, view):
+def live_edit_view(request, view, callback_args, callback_kwargs):
     view = get_wrapped_view(view)
     # Read the old code
     try:
@@ -170,7 +170,7 @@ def live_edit_view(request, view):
             ast_of_old_code=ast_of_old_code,
         )
 
-    flow_direction = request.GET.get('_iommi_live_edit') or 'column'
+    flow_direction = request.GET.get('_iommi_live_edit_flow') or 'column'
     assert flow_direction in ('column', 'row')
 
     return live_edit_view_impl(
@@ -182,10 +182,12 @@ def live_edit_view(request, view):
         get_code=lambda ast_of_old_code, **_: ast_of_old_code.get_code(),
         write_new_code_to_disk=write_new_code_to_disk_for_view,
         flow_direction=flow_direction,
+        callback_args=callback_args,
+        callback_kwargs=callback_kwargs,
     )
 
 
-def live_edit_view_impl(request, view, filename, build_params, get_code, create_response, write_new_code_to_disk, flow_direction):
+def live_edit_view_impl(request, view, filename, build_params, get_code, create_response, write_new_code_to_disk, flow_direction, callback_args, callback_kwargs):
     with open(filename) as f:
         entire_file = f.read()
 
@@ -199,6 +201,8 @@ def live_edit_view_impl(request, view, filename, build_params, get_code, create_
         'request': request,
         'create_response': create_response,
         'write_new_code_to_disk': write_new_code_to_disk,
+        'callback_args': callback_args,
+        'callback_kwargs': callback_kwargs,
     }
     params = {
         **params,
